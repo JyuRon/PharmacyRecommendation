@@ -1,7 +1,8 @@
 1. 도커 이미지 생성(빌드)
 [문법]
 $ docker login // docker hub login 인증
-$ docker build -t [docker hub id]/[이미지 이름:태그] [Dockerfile의 경로] // docker hub id를 이용하여 repository 찾기 $ docker images
+$ docker build -t [docker hub id]/[이미지 이름:태그] [Dockerfile의 경로] // docker hub id를 이용하여 local repository 찾기
+$ docker images
 $ docker push [docker hub id]/[이미지 이름:태그]
 ==============================================================
 [예제]
