@@ -1,0 +1,26 @@
+# 해당 버전은 yml 파일에 대한 문서 버전 표기며 docker engine 버전 마다 표기가 달라진다.
+# https://docs.docker.com/compose/compose-file/compose-versioning/
+
+version: "3.8"                                          # 파일 규격 버전
+services:                                               # 컨테이너의 집합체, 이곳에 실행하려는 컨테이너들을 정의
+  pharmacy-recommendation-redis:                        # 서비스 명(네트워크 호스트명) / 같은 네트워크에 속한 컨테이너끼리 서비스 명으로 접근 가능
+    container_name: pharmacy-recommendation-redis       # 컨테이너 명
+    build:                                              # Dockerfile 이 존재하는 위치
+      dockerfile: Dockerfile                            # build 할 파일명
+      context: ./redis                                  # build 되어야 하는 파일이 존재하는 경로
+    image: jyuka/pharmacy-recommendation-redis          # 컨테이너 생성할 때 사용할 도커 이미지 지정, 빌드 시 해당 이름으로 이미지 생성
+    ports:                                              # 접근 포트 설정(호스트 port : 컨테이너 port)
+      - "6379:6379"
+  pharmacy-recommendation-database:
+    container_name: pharmacy-recommendation-database
+    build:
+      dockerfile: Dockerfile
+      context: ./database
+    image: jyuka/pharmacy-recommendation-database
+    environment:                                        # 컨테이너의 생성시 사용되는 환경 변수
+      - MARIADB_DATABASE=pharmacy-recommendation
+      - MARIADB_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+    volumes:                                            # 호스트 디렉토리 : 컨테이너 디렉토리 매핑으로 호스트와 컨테니어간 파일을 공유함
+      - ./database/config:/etc/mysql/conf.d             # 해당 설정의 경우 my.cnf 파일(mariadb 에 대한 설정 정보)를 공유하기 위함
+    ports:
+      - "3306:3306"
