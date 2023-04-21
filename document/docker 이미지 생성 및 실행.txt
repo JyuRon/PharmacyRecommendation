@@ -1,0 +1,21 @@
+1. 도커 이미지 생성(빌드)
+[문법]
+$ docker login // docker hub login 인증
+$ docker build -t [docker hub id]/[이미지 이름:태그] [Dockerfile의 경로] // docker hub id를 이용하여 repository 찾기 $ docker images
+$ docker push [docker hub id]/[이미지 이름:태그]
+==============================================================
+[예제]
+docker login -u jyuka
+docker build -t jyuka/application-project-test ./
+
+
+2. 도커 이미지 실행
+docker run -p 8080:8080 jyuka/application-project-test
+
+
+3. docker 명령어
+$ docker ps
+$ docker ps -a
+$ docker exec -it [컨테이너 이름 또는 id] /bin/bash // 컨테이너를 sh, bash 등의 터미널 환경으로 접근
+$ docker stop [컨테이너 이름 또는 id]
+$ docker inspect [컨테이너 이름 또는 id]
