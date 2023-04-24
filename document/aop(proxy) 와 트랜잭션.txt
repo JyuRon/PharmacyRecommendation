@@ -1,0 +1,6 @@
+- 동일한 AOP(관점지향) 인 @Async 와 유사
+    => https://github.com/JyuRon/gradle-multi-module/blob/master/document/Async.txt
+- 스프링 AOP는 Proxy 기반으로 동작
+    => @Transactional 붙은 메소드르르 호출(invoke) 시 proxy 객체를 생성하여 동작 위임
+- 일반 객체(bean) 이 @Transactional 이 붙은 메소드를 호출(Invoke)를 호출하는 경우 proxy 객체가 아닌 자기 자신이기 때문에 적용이 되지 않는다.
+- proxy 객체가 @Transactional 이 붙은 메소드 호출 시 자기 자신의 메소드를 호출하는 것으로 특별한 설정이 없다며 상위 @Transactional 이 적용됨
