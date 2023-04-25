@@ -22,5 +22,6 @@ services:                                               # 컨테이너의 집합
       - MARIADB_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
     volumes:                                            # 호스트 디렉토리 : 컨테이너 디렉토리 매핑으로 호스트와 컨테니어간 파일을 공유함
       - ./database/config:/etc/mysql/conf.d             # 해당 설정의 경우 my.cnf 파일(mariadb 에 대한 설정 정보)를 공유하기 위함
+      - ./database/init:/docker-entrypoint-initdb.d     # entrypoint 의 들어간 sh, sql 파일을 실행하기 때문에 자동 실행을 위함
     ports:
       - "3306:3306"
