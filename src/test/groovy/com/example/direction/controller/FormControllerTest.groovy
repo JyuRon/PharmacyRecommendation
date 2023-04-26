@@ -18,12 +18,10 @@ class FormControllerTest extends Specification {
     private MockMvc mockMvc
     private PharmacyRecommendationService pharmacyRecommendationService = Mock()
     private List<OutputDto> outputDtoList
-    private ObjectMapper objectMapper
 
 
     def setup(){
         mockMvc = MockMvcBuilders.standaloneSetup(new FormController(pharmacyRecommendationService)).build()
-        objectMapper = new ObjectMapper()
 
         outputDtoList = new ArrayList<>();
         outputDtoList.addAll(
@@ -46,8 +44,6 @@ class FormControllerTest extends Specification {
 
         given:
         String inputAddress = "서울 성북구 종암동"
-        String body = objectMapper.writeValueAsString(InputDto.builder().address(inputAddress).build());
-        println body
 
         when:
         /**
