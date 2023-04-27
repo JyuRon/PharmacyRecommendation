@@ -12,3 +12,11 @@ local-up:
 # [v] 볼륨까지 삭제
 local-down:
 	docker-compose down -v
+
+prod-up:
+	docker-compose -f docker-compose.yml up -d --force-recreate --build
+
+# [down] 컨테이너 정지 이후 삭제
+# [v] 볼륨까지 삭제
+prod-down:
+	docker-compose down -v

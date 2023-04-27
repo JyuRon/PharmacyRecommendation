@@ -1,0 +1,44 @@
+# 해당 버전은 yml 파일에 대한 문서 버전 표기며 docker engine 버전 마다 표기가 달라진다.
+# https://docs.docker.com/compose/compose-file/compose-versioning/
+
+version: "3.8"                                          # 파일 규격 버전
+services:                                               # 컨테이너의 집합체, 이곳에 실행하려는 컨테이너들을 정의
+  pharmacy-recommendation-redis:                        # 서비스 명(네트워크 호스트명) / 같은 네트워크에 속한 컨테이너끼리 서비스 명으로 접근 가능
+    container_name: pharmacy-recommendation-redis       # 컨테이너 명
+    build:                                              # Dockerfile 이 존재하는 위치
+      dockerfile: Dockerfile                            # build 할 파일명
+      context: ./redis                                  # build 되어야 하는 파일이 존재하는 경로
+    image: jyuka/pharmacy-recommendation-redis          # 컨테이너 생성할 때 사용할 도커 이미지 지정, 빌드 시 해당 이름으로 이미지 생성
+    ports:                                              # 접근 포트 설정(호스트 port : 컨테이너 port)
+      - "6379:6379"
+  pharmacy-recommendation-database:
+    container_name: pharmacy-recommendation-database
+    build:
+      dockerfile: Dockerfile
+      context: ./database
+    image: jyuka/pharmacy-recommendation-database
+    environment:                                        # 컨테이너의 생성시 사용되는 환경 변수
+      - MARIADB_DATABASE=pharmacy-recommendation
+      - MARIADB_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+    volumes:                                            # 호스트 디렉토리 : 컨테이너 디렉토리 매핑으로 호스트와 컨테니어간 파일을 공유함
+      - ./database/config:/etc/mysql/conf.d             # 해당 설정의 경우 my.cnf 파일(mariadb 에 대한 설정 정보)를 공유하기 위함
+      - ./database/init:/docker-entrypoint-initdb.d     # entrypoint 의 들어간 sh, sql 파일을 실행하기 때문에 자동 실행을 위함
+    ports:
+      - "3306:3306"
+  pharmacy-recommendation-app:
+    container_name: pharmacy-recommendation-app
+    build: .
+    depends_on:                                         # DB, REDIS 컨테이너가 실행된 다음 WEB을 실행시킨다.
+      - pharmacy-recommendation-database
+      - pharmacy-recommendation-redis
+    image: jyuka/pharmacy-recommendation-app
+    environment:
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+    ports:
+      - "80:8080"
+    restart: always                                     # depends on은 실행 순서만 컨트롤 할뿐,
+                                                        # 컨테이너 안의 서비스가 실행가능한 상태인지까지는 확인 하지 않기 때문에
+                                                        # DB 또는 Redis가 아직 실행가능한 상태가 아니여서 실패하는 경우 재시작 하도록 설정
