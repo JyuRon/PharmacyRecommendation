@@ -1,0 +1,81 @@
+* docker & docker compose 설치
+https://shanepark.tistory.com/237
+
+
+## EC2 : 인스턴스 생성 및 설정
+- ec2 ubuntu 20.04(프리 티어)
+- 인스턴스 우클릭 -> 인스턴스 설정 -> 태그 추가(CodeDeploy-Element)
+- 보안그룹 launch-wizard-1 인바운드 규칙 추가 (80, 8080 ipv4, ipv6 모두 들어오도록 설정)
+- 최신 apt 업데이트
+    * sudo apt update && sudo apt upgrade
+    * sudo apt install openjdk-17-jdk
+- 고정 ip 설정
+    * ec2 인스턴스 화면에서 좌측 사이드바 -> 네트워크 및 보안 -> 탄력적 Ip
+    * 아무것도 존재하지 없으면 탄력적 ip 주소 할당 버튼을 누르고 아무것도 하지 않고 발급한다.
+    * ec2 삭제 시 할당 받은 ip 또한 과금되므로 같이 삭제한다.
+    * 연결하고자 하는 ip 주소 클릭후 탄력적 ip 주소 연결 버튼 클릭 후 매핑될 인스턴스만 선택한다.
+- Ubuntu Server용 CodeDeploy 에이전트 설치
+    * https://docs.aws.amazon.com/ko_kr/codedeploy/latest/userguide/codedeploy-agent-operations-install-ubuntu.html
+    * https://docs.aws.amazon.com/ko_kr/codedeploy/latest/userguide/resource-kit.html#resource-kit-bucket-names
+    * 명령어
+        sudo apt install ruby-full
+        sudo apt install wget
+        wget https://aws-codedeploy-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/latest/install
+        chmod +x ./install
+        sudo ./install auto > /tmp/logfile
+        sudo service codedeploy-agent status
+        sudo service codedeploy-agent start
+- ec2에 부여할 IAM 생성
+    * IAM 페이지 접속 이후 왼쪽 사이드바 엑세스관리-역할(role)  -> 역할 만들기
+    * 신뢰할 수 있는 엔터티 유형 : aws 서비스
+    * 사용사례 : ec2
+    * 권한추가 : AWSCodeDeployFullAccess, AmazonS3FullAccess
+    * 인스턴스 우클릭 -> 보안 -> iam 역할 수정 -> 방금 만들걸로 연결
+- 외부에서 인스턴스(ubuntu) 접속 방법
+    * ssh -i "EC2-KEY-PAIR.pem" ubuntu@ec2-3-38-233-180.ap-northeast-2.compute.amazonaws.com
+    * pem 키 없이 로그인 하도록 설정
+        sudo vi /etc/ssh/sshd_config  ===> PasswordAuthentication yes 으로 수정
+        sudo su -
+        passwd ubuntu
+        sudo service ssh restart
+        ssh ubuntu@ec2-3-38-233-180.ap-northeast-2.compute.amazonaws.com
+
+
+## 사용자 IAM 생성
+- s3, CodeDeploy 에 접근할 수 있는 사용자 생성
+    * IAM 페이지 접속 이후 왼쪽 사이드바 엑세스관리-사용자(user)  -> 사용자 추가
+    * (체크x) AWS Management Console에 대한 사용자 액세스 권한 제공 – 선택 사항
+    * 직접 정책 연결 선택 이후 AWSCodeDeployFullAccess, AmazonS3FullAccess 추가
+- github action
+    * Repository -> setting -> Actions secrets and variables -> action
+    * IAM 에서 생성한 사용자 id, pw, region key-value 입력
+
+
+## S3 : Storage 저장소
+- 프로젝트 빌드후 생성된 zip 파일을 저장할 예정
+- S3 페이지 접속 이후 버킷 생성 클릭
+- (중요)이 버킷의 퍼블릭 액세스 차단 설정 : 모든 퍼블릭 엑세스 차단 설정
+- 이후 생성
+
+
+## Code Deploy
+- https://docs.aws.amazon.com/ko_kr/codedeploy/latest/userguide/reference-appspec-file.html
+- IAM 페이지 접속 이후 왼쪽 사이드바 엑세스관리-역할(role)  -> 역할 만들기
+    * 신뢰할 수 있는 엔터티 유형 : aws 서비스
+    * 사용사례 : codeDeploy (검색해서 선택)
+        3가지 선택 사항중 CodeDeploy 선택
+    * 이후 아무것도 선택하지 않고 생
+- Code Deploy 페이지 접속 이후 애플리케이션 선택 후 생성버튼 클릭
+    * 컴퓨팅 플랫폼 : EC2/온프레미스 선택
+- 애플리캐이션 생성 이후 -> 배포 그룹 탭 -> 배포그룹 생성
+    * 서비스 역할 - 이전 IAM 에서 code deploy 관련 role 추가
+    * 태그 추가 : EC2 에서 생성한 태그 입력
+    * 로드 밸런서 disable
+
+
+ ## RDS : Relation Database Service
+- RDS 페이지 접속 이후 데이터 베이스 생성 클릭
+    * 데이터베이스 생성 방식 선택 - 손쉬운 생성
+    * MySql 프리티어 선택
+    * DB id, pw 입력
+    * 이후 생성
