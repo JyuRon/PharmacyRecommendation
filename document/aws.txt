@@ -1,6 +1,6 @@
 * docker & docker compose 설치
 https://shanepark.tistory.com/237
-
+https://wonyong-jang.github.io/aws/2022/06/05/AWS-EC2-Elastic-IP.html
 
 ## EC2 : 인스턴스 생성 및 설정
 - ec2 ubuntu 20.04(프리 티어)
